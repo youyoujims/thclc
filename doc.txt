@@ -1,0 +1,27 @@
+Documentation
+
+    How the Language works
+
+        when want to make a function, You shall start with "func"/"function" then the type of the function ("int"/"void")
+        then the name of the function which results in:
+                    
+                    func int main(){
+
+                    } 
+
+        To initialise a variable, You shall start with the variable's type then the name the equal sign then the value,
+        then the semicolon; which results in:
+                    int integer = 20;
+
+
+
+mov rax, 7
+push rax
+mov rax, 8
+push rax
+
+// to use 7
+push QWORD [rsp + (7's pos * 8)]
+mov rax, 60
+pop rdi
+syscall
