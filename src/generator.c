@@ -69,26 +69,29 @@ int get_address(generator* generator, int rsp_address){
 void generator_parse_statement_return(generator* generator, statement* statement, vars_list* vars, char** section){
     char* output = ""; 
     if(statement->token_type == TOKEN_INT_LIT) {
-        output = generator_ree("    mov rdi, %s\n", statement->args);
+        generator_parse_node(generator, statement->expr, vars);
+
         generator_append(section, "    mov rax, 60\n");
-        generator_append(section, output); 
+        generator_append(section, "    pop rdi\n"); 
+
+        
+
+
         generator_append(section, "    syscall\n");
         generator_append(section, "\n");
-        free(output);
+
     }else if(statement->token_type == TOKEN_IDENTIFIER){
         generator_append(section, "    mov rax, 60\n");
 
         char* rsp_str = list_get(generator->rsp, statement->args);
-
         int rsp_address = atoi(rsp_str);
+
+        generator_parse_node(generator, statement->expr, vars);
+
 
         output = (get_address(generator, rsp_address) >= 1)
             ? generator_ree("    push QWORD ptr[rsp+%d]\n", (get_address(generator, rsp_address) * 8))
             : generator_ree("    push QWORD ptr[rsp]\n");
-        //output = (get_address(generator, rsp_address) >= 1)
-        //    ? generator_ree("    mov rdi, QWORD ptr[rsp+%d]\n", (get_address(generator, rsp_address) * 8))
-        //    : generator_ree("    mov rdi, QWORD ptr[rsp]\n");
-
 
         generator_append(section, output);
         generator_append(section, "    pop rdi\n");
@@ -178,86 +181,6 @@ void generator_parse_statement_init(generator* generator, statement* statement, 
                 free(output);
                 generator_parse_node(generator, statement->expr, vars);
             }
-//                output = generator_ree("%s %d", statement->name, generator->rsp->len);
-//                list_append(generator->rsp, output);
-//                free(output);
-//
-//                //generator_append(section, "    sub rsp, 8 \n");
-//
-//                //TODO: if the expr left type is var then...
-//                if(statement->expr->left->type == NODE_VARIABLE){
-//                    char* rsp_str = list_get(generator->rsp, statement->expr->left->name);
-//                    int rsp_address  = atoi(rsp_str);
-//
-//                    output = (get_address(generator, rsp_address) >= 1) ? generator_ree("    mov rax, qword ptr[rsp+%d]\n", (get_address(generator, rsp_address) * 8))
-//                        : generator_ree("    mov rax, qword ptr[rsp]\n");
-//
-//
-//                    generator_append(section, output);
-//                    free(output);
-//                    free(rsp_str);
-//                }else{
-//                    output = generator_ree("    mov rax, %d\n", statement->expr->left->value);
-//                    generator_append(section, output);
-//                    free(output);
-//                }
-//
-//                if(statement->expr->right->type == NODE_VARIABLE){
-//
-//                    char* rsp_str = list_get(generator->rsp, statement->expr->right->name);
-//                    int rsp_address  = atoi(rsp_str);
-//                    if(statement->expr->op_type == TOKEN_PLUS){
-//                        output = (get_address(generator, rsp_address) >= 1) ? generator_ree("    add rax, qword ptr[rsp+%d]\n", (get_address(generator, rsp_address) * 8))
-//                            : generator_ree("    add rax, qword ptr[rsp]\n");
-//
-//                        generator_append(section, output);
-//                        free(output);
-//                    }else if(statement->expr->op_type == TOKEN_MINUS){
-//                        output = (get_address(generator, rsp_address) >= 1) ? generator_ree("    sub rax, qword ptr[rsp+%d]\n", (get_address(generator, rsp_address) * 8))
-//                            : generator_ree("    sub rax, qword ptr[rsp]\n");
-//
-//                        generator_append(section, output);
-//                        free(output);
-//                    }            
-//                    free(rsp_str);
-//                }else{
-//                    
-//                    if(statement->expr->op_type == TOKEN_PLUS){
-//                        output = generator_ree("    add rax, %d\n", statement->expr->right->value);
-//                        generator_append(section, output);
-//                        free(output);
-//                    }else if(statement->expr->op_type == TOKEN_MINUS){
-//                        output = generator_ree("    sub rax, %d\n", statement->expr->right->value);
-//                        generator_append(section, output);
-//                        free(output);
-//                    }             
-//
-//                }
-//                //generator_append(section, "    mov qword ptr [rsp], rax \n");
-//                generator_append(section, "    push rax\n");
-//
-//                parser_free_ast_node(statement->expr);
-//                generator_append(section, "\n");
-//
-//            }else {
-//
-//                output = generator_ree("%s %d", statement->name, generator->rsp->len);
-//                list_append(generator->rsp, output);
-//                free(output);
-//
-//                //generator_append(section, "    sub rsp, 8\n");
-//
-//                output = generator_ree("    mov rax, %s\n", statement->args);
-//                generator_append(section, output);
-//                free(output);
-//
-//                output = generator_ree("    push rax\n");
-//                generator_append(section, output);
-//                free(output);
-//
-//                generator_append(section, "\n");
-//
-
         }
 
     }
@@ -314,7 +237,6 @@ void generator_parse_statement_init_const(generator* generator, statement* state
     generator_append(&generator->section_rodata, output);
     free(output);
     generator_append(&generator->output, "\n");
-
 }
 
 void generator_parse_statement_reassignement(generator* generator, statement* statement, vars_list* vars){

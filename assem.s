@@ -3,18 +3,10 @@
 .global _start
 .text
 _start:
-    mov rax, 10
+    mov rax, 5
     push rax
 
-    mov rax, 1
-    push rax
-
-    mov rax, 1
-    push rax
-
-    pop rbx
-    pop rax
-    add rax, rbx
+    mov rax, qword ptr[rsp]
     push rax
 
     mov rax, 1
@@ -25,15 +17,7 @@ _start:
     add rax, rbx
     push rax
 
-    mov rax, qword ptr[rsp+8]
-    push rax
-
-    pop rbx
-    pop rax
-    add rax, rbx
-    push rax
-
-    mov rax, 1
+    mov rax, qword ptr[rsp]
     push rax
 
     pop rbx
@@ -42,6 +26,6 @@ _start:
     push rax
 
     mov rax, 60
-    push QWORD ptr[rsp]
     pop rdi
     syscall
+

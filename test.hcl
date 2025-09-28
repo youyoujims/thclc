@@ -1,5 +1,4 @@
 func int main(){
-    int final = 10; 
-    int a = 1 + 1 + 1 + final;
-    return a;
+    int a = 5;
+    return a + 1 + a;
 }

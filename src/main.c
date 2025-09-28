@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define VERSION 1
+#define VERSION 1.0
 
 static char* shift(int* argc, char*** argv){
     assert(*argc > 0);
@@ -15,12 +15,13 @@ static char* shift(int* argc, char*** argv){
 }		
 
 void usage(){
-    printf("Usage: thc [OPTIONS] <file.hcl>\n");
+    printf("Usage: thclc [OPTIONS] <file.hcl>\n");
     printf("OPTIONS:\n");
-    printf("    -h, --help\t\tShow this information\n");
-	printf("    --version \t\tDisplays the version of the compiler\n");
-    printf("    -o        \t\tDefine the output file name\n");
-	printf("    -k        \t\tKeeps the assembly file\n");
+    printf("    -h, --help   \t\tShow this information\n");
+	printf("    -v, --version\t\tDisplays the version of the compiler\n");
+	printf("    --version    \t\tDisplays the version of the compiler\n");
+    printf("    -o           \t\tDefine the output file name\n");
+	printf("    -k           \t\tKeeps the assembly file\n");
 }
 
 int main(int argc, char** argv){
@@ -28,13 +29,17 @@ int main(int argc, char** argv){
     shift(&argc, &argv);
     char* input_file_path = NULL;
     char* output_file_path = NULL;
+    if(argc < 1){
+        printf("Usage: thclc [OPTIONS] <file.hcl>\n");
+        exit(1);
+    }
     while(argc > 0){
         char* flag = shift(&argc, &argv);
         if(strcmp(flag, "--help") == 0 || strcmp(flag, "-h") == 0){
             usage();
             exit(1);
-        }else if(strcmp(flag, "--version") == 0){
-            printf("thc %d\n", VERSION);
+        }else if(strcmp(flag, "--version") == 0 || strcmp(flag, "-v") == 0){
+            printf("The Horrible Coding Language Compiler version %f\n", VERSION);
             exit(1);
         } else if(strcmp(flag, "-o") == 0){
             if(argc <= 0){

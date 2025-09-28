@@ -19,8 +19,11 @@ statement* parser_statement_init(function* function, char* name, char* args, int
 
     statement->name = calloc(strlen(name)+1, sizeof(char));
     strcpy(statement->name, name);
-    statement->args = calloc(strlen(args)+1, sizeof(char));
-    strcpy(statement->args, args);
+
+    if(args){
+        statement->args = calloc(strlen(args)+1, sizeof(char));
+        strcpy(statement->args, args);
+    }
 
     statement->type = type;
     statement->token_type = token_type;
@@ -94,8 +97,8 @@ int parser_expect_token(lexer* lexer, token* cur, int type, char* name){
     }
 }
 
-ASTNode* parser_parse_expression(lexer* lexer, function* function, generator* generator, char* block, int block_pos){
-    token* cur = lexer_next_token_source(lexer, block, block_pos);
+ASTNode* parser_parse_expression(lexer* lexer, function* function, generator* generator, char* block, int block_pos, token* cur){
+    //token* cur = lexer_next_token_source(lexer, block, block_pos);
 
     if(!cur || (cur->type != TOKEN_INT_LIT && cur->type != TOKEN_IDENTIFIER)){
         parser_expect_token(lexer, cur, TOKEN_INT_LIT, "Expected an integer instead of `%s` %s:%d:%d\n");
@@ -179,36 +182,14 @@ void parser_parse_if_statement(generator* generator, lexer* lexer, function* fun
 }
 
 void parser_parse_statement(lexer* lexer, generator* generator, function* function, char* block, int block_pos, vars_list* vars, int type, char* name, char** section){
-    token* cur = lexer_next_token_source(lexer, block, block_pos);;
+    token* cur = lexer_next_token_source(lexer, block, block_pos);
     statement* statement = NULL;
 
     if(strcmp(name, "return") == 0){
-        if(cur->type == TOKEN_INT_LIT){
-            parser_expect_token(lexer, cur, TOKEN_INT_LIT, "Expected a integer instead of `%s` at %s:%d:%d\n");
-            char* value_copy = strdup(cur->value);
-            if(value_copy == NULL){
-                fprintf(stderr, "Memory error");
-                token_free(cur);
-                exit(1);
-             }
-             statement = parser_statement_init(function, name, value_copy, type, TOKEN_INT_LIT, NULL);
-             free(value_copy);
-             token_free(cur);
-        }else if(cur->type == TOKEN_IDENTIFIER){
-            parser_expect_token(lexer, cur, TOKEN_IDENTIFIER, "Expected a variable instead of `%s` at %s:%d:%d\n");
-            char* value_copy = strdup(cur->value);
-            statement = parser_statement_init(function, name, value_copy, type, TOKEN_IDENTIFIER, NULL);
-            free(value_copy);
-			token_free(cur);
-        }
 
-        cur = lexer_next_token_source(lexer, block, block_pos);;
-        parser_expect_token(lexer, cur, TOKEN_SEMICOLON, "Expected a `;` instead of `%s` at %s:%d:%d\n");
-        token_free(cur);
-        
-//        statement = parser_statement_init(function, name, value_copy, type, TOKEN_RETURN);
-//        free(value_copy);
-
+        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos, cur);
+        statement = parser_statement_init(function, name, NULL, type, TOKEN_INT_LIT, expr);
+                
     }else if(strcmp(name, "print") == 0){
 
         parser_expect_token(lexer, cur, TOKEN_OPAREN, "Expected a `(` instead of `%s` at %s:%d:%d\n");
@@ -245,12 +226,10 @@ void parser_parse_statement(lexer* lexer, generator* generator, function* functi
         parser_expect_token(lexer, cur, TOKEN_EQUAL, "Expected a `=` instead of `%s` at %s:%d:%d\n");
         token_free(cur);
 
-
-        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos);
-        //parser_free_ast_node(expr);
+        
+        cur = lexer_next_token_source(lexer, block, block_pos);
+        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos, cur);
         statement = parser_statement_init(function, variable_name, variable_name, type, TOKEN_INT, expr); 
-        //parser_free_ast_node(expr);
-        //parser_free_statement(statement);
        
         char* str = "int %s";
         size_t size = snprintf(NULL, 0, str, variable_name) + 1;
@@ -444,11 +423,11 @@ void parser_parse_statement(lexer* lexer, generator* generator, function* functi
                 cur = lexer_next_token_source(lexer, block, block_pos);;
                 if(cur->type == TOKEN_PLUS || cur->type == TOKEN_MINUS){
                     if(left != NULL){
-                        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos);
+                        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos, cur);
                         statement = parser_statement_init(function, name, left, type, TOKEN_INT, expr);                       
                         free(left);
                     }else{
-                        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos);
+                        ASTNode* expr = parser_parse_expression(lexer, function, generator, block, block_pos, cur);
                         statement = parser_statement_init(function, name, left, type, TOKEN_INT, expr);                       
                         free(left);
                     }
@@ -468,7 +447,6 @@ void parser_parse_statement(lexer* lexer, generator* generator, function* functi
         }
     }
 
-    //    if(statement->expr != NULL) printf("%d\n", statement->expr->left->value);
 
     //make that the generator take the statement and converts it to asm
     if(statement != NULL){
