@@ -1,2 +1,2 @@
-The Horrible Coding Language Compiler\n
+The Horrible Coding Language Compiler
 A project made by a self-learned coder.
