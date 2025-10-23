@@ -19,7 +19,6 @@ void usage(){
     printf("OPTIONS:\n");
     printf("    -h, --help   \t\tShow this information\n");
 	printf("    -v, --version\t\tDisplays the version of the compiler\n");
-	printf("    --version    \t\tDisplays the version of the compiler\n");
     printf("    -o           \t\tDefine the output file name\n");
 	printf("    -k           \t\tKeeps the assembly file\n");
 }

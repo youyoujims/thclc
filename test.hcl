@@ -1,4 +1,7 @@
 func int main(){
     int a = 5;
-    return a + 1 + a;
+    if(a > 2){
+      return 2;
+    }
+    return a;
 }
